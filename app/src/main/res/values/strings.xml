@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">SimplQ</string>
+    <string name="ok">OK</string>
+    <string name="sms_access_required">Permission to send SMS is required to send SMS to people who join the queue</string>
+    <string name="sms_unavailable">This app won\'t work without granting SMS permissions.</string>
+    <string name="sms_permission_granted">SMS Permission granted</string>
 </resources>
