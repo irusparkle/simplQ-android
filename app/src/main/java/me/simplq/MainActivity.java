@@ -48,11 +48,11 @@ public class MainActivity extends AppCompatActivity {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
                 == PackageManager.PERMISSION_GRANTED) {
-            // Permission is already available, start camera preview
+            // Permission is already available
             // TODO: Show status on the app
         } else {
             // Permission is missing and must be requested.
-            requestCameraPermission();
+            requestSmsPermission();
         }
     }
 
@@ -65,10 +65,10 @@ public class MainActivity extends AppCompatActivity {
         sms.sendTextMessage(phoneNumber, null, message, pi, null);
     }
 
-    private void requestCameraPermission() {
+    private void requestSmsPermission() {
         // Permission has not been granted and must be requested.
         if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.CAMERA)) {
+                Manifest.permission.SEND_SMS)) {
             // Provide an additional rationale to the user if the permission was not granted
             // and the user would benefit from additional context for the use of the permission.
             // Display a SnackBar with cda button to request the missing permission.
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_SMS) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission has been granted. Start camera preview Activity.
+                // Permission has been granted.
                 Snackbar.make(mLayout, R.string.sms_permission_granted,
                         Snackbar.LENGTH_SHORT)
                         .show();
