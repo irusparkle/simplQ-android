@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "348531792421",
+    "project_id": "simplq-fe712",
+    "storage_bucket": "simplq-fe712.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348531792421:android:538ca8e301f4cbbf0f3dcc",
+        "android_client_info": {
+          "package_name": "me.simplq"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "348531792421-o5592cl5k6vk5p7ps4itd7b2eoeg7o1v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "me.simplq",
+            "certificate_hash": "ff62d45d309b0314e11dfe7c9678f50c8ec2c221"
+          }
+        },
+        {
+          "client_id": "348531792421-c864s766vg3697ds53e89b6ovijmgbtl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwExB9sEjrKN1IXqlqNxKtkXI0wAlOwRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "348531792421-c864s766vg3697ds53e89b6ovijmgbtl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

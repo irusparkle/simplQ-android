@@ -1,28 +1,30 @@
 package me.simplq;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
-import android.app.PendingIntent;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class MainActivity extends AppCompatActivity {
-    Button btnSendSMS;
-    EditText txtPhoneNo;
-    EditText txtMessage;
+    EditText txtQueueId;
+    Button btnEnableSms;
     private View mLayout;
     private static final int PERMISSION_REQUEST_SMS = 0;
+    // Todo Remove the logs
+    private static final String TAG = "TO_REMOVE";
 
 
     @Override
@@ -31,18 +33,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mLayout = findViewById(android.R.id.content);
 
-        btnSendSMS = (Button) findViewById(R.id.btnSendSMS);
-        txtPhoneNo = (EditText) findViewById(R.id.txtPhoneNo);
-        txtMessage = (EditText) findViewById(R.id.txtMessage);
+        txtQueueId = (EditText) findViewById(R.id.txtQueueId);
+        btnEnableSms = (Button) findViewById(R.id.btnEnableSms);
 
-        btnSendSMS.setOnClickListener(v -> {
-            String phoneNo = txtPhoneNo.getText().toString();
-            String message = txtMessage.getText().toString();
-            if (phoneNo.length()>0 && message.length()>0)
-                sendSMS(phoneNo, message);
+        btnEnableSms.setOnClickListener(v -> {
+            String queueId = txtQueueId.getText().toString();
+            if (queueId.length() > 0)
+                registerQueue(queueId);
             else
                 Toast.makeText(getBaseContext(),
-                        "Please enter both phone number and message.",
+                        "Please enter the Queue ID.",
                         Toast.LENGTH_SHORT).show();
         });
 
@@ -54,15 +54,6 @@ public class MainActivity extends AppCompatActivity {
             // Permission is missing and must be requested.
             requestSmsPermission();
         }
-    }
-
-    private void sendSMS(String phoneNumber, String message)
-    {
-        PendingIntent pi = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
-        SmsManager sms = SmsManager.getDefault();
-        // TODO log/notify on failure
-        sms.sendTextMessage(phoneNumber, null, message, pi, null);
     }
 
     private void requestSmsPermission() {
@@ -107,5 +98,25 @@ public class MainActivity extends AppCompatActivity {
                         .show();
             }
         }
+    }
+
+    public void registerQueue(String queueId) {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                            return;
+                        }
+
+                        // Get new FCM registration token
+                        String token = task.getResult();
+
+                        // Log and toast
+                        Log.d(TAG, token);
+                        Toast.makeText(MainActivity.this, token, Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

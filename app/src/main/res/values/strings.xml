@@ -4,4 +4,6 @@
     <string name="sms_access_required">Permission to send SMS is required to send SMS to people who join the queue</string>
     <string name="sms_unavailable">This app won\'t work without granting SMS permissions.</string>
     <string name="sms_permission_granted">SMS Permission granted</string>
+    <string name="queue_id_helper_text">Enter the Queue ID</string>
+    <string name="enable_sms_button">Enable SMS</string>
 </resources>
