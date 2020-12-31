@@ -6,4 +6,5 @@
     <string name="sms_permission_granted">SMS Permission granted</string>
     <string name="queue_id_helper_text">Enter the Queue ID</string>
     <string name="enable_sms_button">Enable SMS</string>
+    <string name="prompt_queue_id">\"Please enter the Queue ID.\"</string>
 </resources>

@@ -41,8 +41,7 @@ public class MainActivity extends AppCompatActivity {
             if (queueId.length() > 0)
                 registerQueue(queueId);
             else
-                Toast.makeText(getBaseContext(),
-                        "Please enter the Queue ID.",
+                Toast.makeText(getBaseContext(), R.string.prompt_queue_id,
                         Toast.LENGTH_SHORT).show();
         });
 
