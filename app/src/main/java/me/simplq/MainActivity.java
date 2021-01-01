@@ -1,30 +1,40 @@
 package me.simplq;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import me.simplq.pojo.Queue;
 
 public class MainActivity extends AppCompatActivity {
     EditText txtQueueId;
-    Button btnEnableSms;
+    Button btnRefresh;
     private View mLayout;
     private static final int PERMISSION_REQUEST_SMS = 0;
     // Todo Remove the logs
     private static final String TAG = "TO_REMOVE";
+    private BroadcastReceiver serviceReceiver;
+
+    void fetchQueues() {
+        BackendService.enqueueWork(this, BackendService.class, BackendService.FETCH_QUEUES_JOB_ID, new Intent());
+    }
 
 
     @Override
@@ -34,16 +44,10 @@ public class MainActivity extends AppCompatActivity {
         mLayout = findViewById(android.R.id.content);
 
         txtQueueId = (EditText) findViewById(R.id.txtQueueId);
-        btnEnableSms = (Button) findViewById(R.id.btnEnableSms);
+        btnRefresh = (Button) findViewById(R.id.btnEnableSms);
 
-        btnEnableSms.setOnClickListener(v -> {
-            String queueId = txtQueueId.getText().toString();
-            if (queueId.length() > 0)
-                registerQueue(queueId);
-            else
-                Toast.makeText(getBaseContext(), R.string.prompt_queue_id,
-                        Toast.LENGTH_SHORT).show();
-        });
+        btnRefresh.setOnClickListener(v -> fetchQueues());
+        fetchQueues();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -53,6 +57,21 @@ public class MainActivity extends AppCompatActivity {
             // Permission is missing and must be requested.
             requestSmsPermission();
         }
+
+        serviceReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                List<Queue> queues = (ArrayList<Queue>) intent.getSerializableExtra(BackendService.NEW_QUEUES_KEY);
+                if (queues != null) {
+                    String queueList = "";
+                    for (int i = 0; i < queues.size(); i++) {
+                        Log.e("REMOVE_THIS", queues.get(i).getName());
+                    }
+                }
+            }
+        };
+        IntentFilter intentSFilter = new IntentFilter(BackendService.UPDATE_QUEUES_ACTION);
+        registerReceiver(serviceReceiver, intentSFilter);
     }
 
     private void requestSmsPermission() {
@@ -99,23 +118,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void registerQueue(String queueId) {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(new OnCompleteListener<String>() {
-                    @Override
-                    public void onComplete(@NonNull Task<String> task) {
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                            return;
-                        }
 
-                        // Get new FCM registration token
-                        String token = task.getResult();
-
-                        // Log and toast
-                        Log.d(TAG, token);
-                        Toast.makeText(MainActivity.this, token, Toast.LENGTH_SHORT).show();
-                    }
-                });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(serviceReceiver);
     }
 }

@@ -13,12 +13,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * https://developers.google.com/identity/sign-in/android/sign-in
  */
 public class LoginActivity extends AppCompatActivity {
-    private GoogleSignInClient mGoogleSignInClient;
+    private static GoogleSignInClient mGoogleSignInClient;
     // Set onStart, null if user not signed in.
     private GoogleSignInAccount signedInAccount;
     private SignInButton signInButton;
@@ -33,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.server_client_id))
                 .requestEmail()
                 .build();
         // Build a GoogleSignInClient with the options specified by gso.
@@ -87,6 +91,14 @@ public class LoginActivity extends AppCompatActivity {
     private void updateUI(GoogleSignInAccount signInAccount) {
         if (signInAccount != null) {
             startActivity(new Intent(this, MainActivity.class));
+        }
+    }
+
+    public static String getIdToken() {
+        try {
+            return Tasks.await(mGoogleSignInClient.silentSignIn()).getIdToken();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }
