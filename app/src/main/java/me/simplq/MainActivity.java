@@ -7,10 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,8 +23,8 @@ import java.util.List;
 import me.simplq.pojo.Queue;
 
 public class MainActivity extends AppCompatActivity {
-    EditText txtQueueId;
     Button btnRefresh;
+    ListView listView;
     private View mLayout;
     private static final int PERMISSION_REQUEST_SMS = 0;
     // Todo Remove the logs
@@ -43,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mLayout = findViewById(android.R.id.content);
 
-        txtQueueId = (EditText) findViewById(R.id.txtQueueId);
         btnRefresh = (Button) findViewById(R.id.btnEnableSms);
 
         btnRefresh.setOnClickListener(v -> fetchQueues());
         fetchQueues();
+        listView = (ListView) findViewById(R.id.listview);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -63,10 +62,7 @@ public class MainActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 List<Queue> queues = (ArrayList<Queue>) intent.getSerializableExtra(BackendService.NEW_QUEUES_KEY);
                 if (queues != null) {
-                    String queueList = "";
-                    for (int i = 0; i < queues.size(); i++) {
-                        Log.e("REMOVE_THIS", queues.get(i).getName());
-                    }
+                    listView.setAdapter(new QueueListAdapter(queues, context));
                 }
             }
         };

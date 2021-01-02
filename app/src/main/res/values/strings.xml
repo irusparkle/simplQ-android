@@ -8,4 +8,5 @@
     <string name="refresh_button">Refresh</string>
     <string name="prompt_queue_id">\"Please enter the Queue ID.\"</string>
     <string name="server_client_id">348531792421-slt8oml7tpo892u7gk7l5djb6b5sgnl9.apps.googleusercontent.com</string>
+    <string name="activate">Open</string>
 </resources>
