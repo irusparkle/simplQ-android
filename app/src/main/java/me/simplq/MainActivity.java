@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -24,17 +25,14 @@ import me.simplq.pojo.Queue;
 
 public class MainActivity extends AppCompatActivity {
     Button btnRefresh;
+    Button btnToggleSms;
     ListView listView;
     private View mLayout;
     private static final int PERMISSION_REQUEST_SMS = 0;
     // Todo Remove the logs
     private static final String TAG = "TO_REMOVE";
     private BroadcastReceiver serviceReceiver;
-
-    void fetchQueues() {
-        BackendService.enqueueWork(this, BackendService.class, BackendService.FETCH_QUEUES_JOB_ID, new Intent());
-    }
-
+    private boolean smsEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +40,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mLayout = findViewById(android.R.id.content);
 
-        btnRefresh = (Button) findViewById(R.id.btnEnableSms);
+        btnRefresh = (Button) findViewById(R.id.btnRefresh);
+        btnRefresh.setOnClickListener(v -> refresh());
 
-        btnRefresh.setOnClickListener(v -> fetchQueues());
-        fetchQueues();
+        btnToggleSms = (Button) findViewById(R.id.btnToggleSms);
+        btnToggleSms.setOnClickListener(v -> toggleSms());
+        btnToggleSms.setText(R.string.loading);
         listView = (ListView) findViewById(R.id.listview);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
@@ -60,14 +60,29 @@ public class MainActivity extends AppCompatActivity {
         serviceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                List<Queue> queues = (ArrayList<Queue>) intent.getSerializableExtra(BackendService.NEW_QUEUES_KEY);
-                if (queues != null) {
-                    listView.setAdapter(new QueueListAdapter(queues, context));
+                if (BackendService.UPDATE_QUEUES_ACTION.equals(intent.getAction())) {
+                    List<Queue> queues = (ArrayList<Queue>) intent.getSerializableExtra(BackendService.NEW_QUEUES_KEY);
+                    if (queues != null) {
+                        listView.setAdapter(new QueueListAdapter(queues, context));
+                    }
+                } else if (BackendService.UPDATE_SMS_STATUS_ACTION.equals(intent.getAction())) {
+                    smsEnabled = intent.getBooleanExtra(BackendService.SMS_IS_ENABLED_KEY, false);
+                    if (smsEnabled) {
+                        btnToggleSms.setText(R.string.disable_sms);
+                        btnToggleSms.setBackgroundColor(Color.parseColor("#CC471E"));
+                    } else {
+                        btnToggleSms.setText(R.string.enable_sms);
+                        btnToggleSms.setBackgroundColor(Color.parseColor("#1ECC21"));
+                    }
+                } else {
+                    throw new RuntimeException("Invalid action");
                 }
             }
         };
-        IntentFilter intentSFilter = new IntentFilter(BackendService.UPDATE_QUEUES_ACTION);
-        registerReceiver(serviceReceiver, intentSFilter);
+        registerReceiver(serviceReceiver, new IntentFilter(BackendService.UPDATE_QUEUES_ACTION));
+        registerReceiver(serviceReceiver, new IntentFilter(BackendService.UPDATE_SMS_STATUS_ACTION));
+
+        refresh();
     }
 
     private void requestSmsPermission() {
@@ -119,5 +134,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(serviceReceiver);
+    }
+
+    void refresh() {
+        BackendService.enqueueWork(this, BackendService.class, BackendService.BACKEND_SERVICE_JOB_ID, new Intent().setAction(BackendService.UPDATE_QUEUES_ACTION));
+        BackendService.enqueueWork(this, BackendService.class, BackendService.BACKEND_SERVICE_JOB_ID, new Intent().setAction(BackendService.UPDATE_SMS_STATUS_ACTION));
+    }
+
+    void toggleSms() {
+        final Intent intent;
+        if (smsEnabled) {
+            intent = new Intent().setAction(BackendService.DISABLE_SMS_ACTION);
+        } else {
+            intent = new Intent().setAction(BackendService.ENABLE_SMS_ACTION);
+        }
+        BackendService.enqueueWork(this, BackendService.class, BackendService.BACKEND_SERVICE_JOB_ID, intent);
     }
 }

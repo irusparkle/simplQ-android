@@ -4,10 +4,13 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.telephony.SmsManager;
 
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Handles push notifications from FCM.
@@ -30,6 +33,14 @@ public class MessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(String token) {
         // TODO: Handle token refreshes
+    }
+
+    public static String fetchToken() {
+        try {
+            return Tasks.await(FirebaseMessaging.getInstance().getToken());
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException("Device Token fetching failed");
+        }
     }
 
     private void sendSMS(String phoneNumber, String message) {
