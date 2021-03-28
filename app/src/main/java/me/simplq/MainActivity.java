@@ -16,6 +16,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.auth0.android.Auth0;
+import com.auth0.android.authentication.AuthenticationException;
+import com.auth0.android.callback.Callback;
+import com.auth0.android.provider.WebAuthProvider;
+import com.auth0.android.result.Credentials;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -24,6 +29,11 @@ import java.util.List;
 import me.simplq.pojo.Queue;
 
 public class MainActivity extends AppCompatActivity {
+    // Set to null if user not signed in.
+    private Auth0 account;
+    private static String accessToken;
+    Button btnLogin;
+
     Button btnRefresh;
     Button btnToggleSms;
     ListView listView;
@@ -37,8 +47,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         mLayout = findViewById(android.R.id.content);
+
+        // Set up the account object with the Auth0 application details
+        // todo avoid hardcoding the values for clientId and domain.  Instead, use String Resources,
+        //  such as @string/com_auth0_domain, to define the values.
+        account = new Auth0(
+                getString(R.string.com_auth0_client_id),
+                getString(R.string.com_auth0_domain)
+        );
+
+        btnLogin = (Button) findViewById(R.id.btnAuth0Login);
+        btnLogin.setOnClickListener(v -> loginWithBrowser());
 
         btnRefresh = (Button) findViewById(R.id.btnRefresh);
         btnRefresh.setOnClickListener(v -> refresh());
@@ -81,8 +103,37 @@ public class MainActivity extends AppCompatActivity {
         };
         registerReceiver(serviceReceiver, new IntentFilter(BackendService.UPDATE_QUEUES_ACTION));
         registerReceiver(serviceReceiver, new IntentFilter(BackendService.UPDATE_SMS_STATUS_ACTION));
+    }
 
-        refresh();
+    private void loginWithBrowser() {
+        // Setup the WebAuthProvider, using the custom scheme and scope.
+
+        WebAuthProvider.login(account)
+                .withScheme("demo")
+                .withScope("read:current_user update:current_user_metadata")
+                .withAudience("https://devbackend.simplq.me/v1")
+                // Launch the authentication passing the callback where the results will be received
+                .start(this, new Callback<Credentials, AuthenticationException>() {
+                    // Called when there is an authentication failure
+                    @Override
+                    public void onFailure(AuthenticationException exception) {
+                        // Something went wrong!
+                        throw exception;
+                    }
+
+                    // Called when authentication completed successfully
+                    @Override
+                    public void onSuccess(Credentials credentials) {
+                        // Get the access token from the credentials object.
+                        // This can be used to call APIs
+                        accessToken = credentials.getAccessToken();
+                        refresh();
+                    }
+                });
+    }
+
+    public static String getIdToken() {
+        return accessToken;
     }
 
     private void requestSmsPermission() {

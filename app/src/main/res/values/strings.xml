@@ -12,4 +12,6 @@
     <string name="enable_sms">ENABLE SMS</string>
     <string name="disable_sms">DISABLE SMS</string>
     <string name="loading">Loading...</string>
+    <string name="com_auth0_domain">simplq.us.auth0.com</string>
+    <string name="com_auth0_client_id">9BAywifjAy6n0sx8WbuQubMGGjofpwd6</string>
 </resources>

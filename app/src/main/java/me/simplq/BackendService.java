@@ -87,7 +87,7 @@ public class BackendService extends JobIntentService {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer " + LoginActivity.getIdToken());
+                params.put("Authorization", "Bearer " + MainActivity.getIdToken());
                 return params;
             }
         };
@@ -120,7 +120,7 @@ public class BackendService extends JobIntentService {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer " + LoginActivity.getIdToken());
+                params.put("Authorization", "Bearer " + MainActivity.getIdToken());
                 return params;
             }
         };
@@ -145,7 +145,7 @@ public class BackendService extends JobIntentService {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer " + LoginActivity.getIdToken());
+                params.put("Authorization", "Bearer " + MainActivity.getIdToken());
                 return params;
             }
         };

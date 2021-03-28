@@ -9,12 +9,15 @@ android {
 
     defaultConfig {
         applicationId "me.simplq"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+
+        manifestPlaceholders = [auth0Domain: "@string/com_auth0_domain", auth0Scheme: "demo"]
     }
 
     buildTypes {
@@ -39,6 +42,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:26.2.0')
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.android.gms:play-services-auth:19.0.0'
     implementation 'com.android.volley:volley:1.1.1'
+    // Add the Auth0 Android SDK
+    implementation 'com.auth0.android:auth0:2.+'
 }
