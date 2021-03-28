@@ -20,6 +20,9 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name=".MessagingService$SmsDeliveredReceiver" />
+        <receiver android:name=".MessagingService$SmsSentReceiver" />
+
         <service
             android:name=".MessagingService"
             android:exported="false">
