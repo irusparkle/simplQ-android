@@ -4,7 +4,7 @@
     <string name="sms_access_required">Permission to send SMS is required to send SMS to people who join the queue</string>
     <string name="sms_unavailable">This app won\'t work without granting SMS permissions.</string>
     <string name="sms_permission_granted">SMS Permission granted</string>
-    <string name="queue_id_helper_text">Enter the Queue ID</string>
+    <string name="queue_id_helper_text">Your active queues: </string>
     <string name="refresh_button">Refresh</string>
     <string name="prompt_queue_id">\"Please enter the Queue ID.\"</string>
     <string name="server_client_id">348531792421-slt8oml7tpo892u7gk7l5djb6b5sgnl9.apps.googleusercontent.com</string>
@@ -14,4 +14,6 @@
     <string name="loading">Loading...</string>
     <string name="com_auth0_domain">simplq.us.auth0.com</string>
     <string name="com_auth0_client_id">9BAywifjAy6n0sx8WbuQubMGGjofpwd6</string>
+    <string name="logout">LOGOUT</string>
+    <string name="login">LOGIN</string>
 </resources>

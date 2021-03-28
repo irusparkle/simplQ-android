@@ -17,7 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.auth0.android.Auth0;
+import com.auth0.android.authentication.AuthenticationAPIClient;
 import com.auth0.android.authentication.AuthenticationException;
+import com.auth0.android.authentication.storage.CredentialsManager;
+import com.auth0.android.authentication.storage.SharedPreferencesStorage;
 import com.auth0.android.callback.Callback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
@@ -31,6 +34,7 @@ import me.simplq.pojo.Queue;
 public class MainActivity extends AppCompatActivity {
     // Set to null if user not signed in.
     private Auth0 account;
+    private CredentialsManager credentialsManager;
     private static String accessToken;
     Button btnLogin;
 
@@ -58,9 +62,15 @@ public class MainActivity extends AppCompatActivity {
                 getString(R.string.com_auth0_client_id),
                 getString(R.string.com_auth0_domain)
         );
+        credentialsManager = new CredentialsManager(new AuthenticationAPIClient(account), new SharedPreferencesStorage(this));
 
         btnLogin = (Button) findViewById(R.id.btnAuth0Login);
-        btnLogin.setOnClickListener(v -> loginWithBrowser());
+        btnLogin.setOnClickListener(v -> loginOnClickHandler());
+        if (credentialsManager.hasValidCredentials()) {
+            btnLogin.setText(R.string.logout);
+        } else {
+            btnLogin.setText(R.string.login);
+        }
 
         btnRefresh = (Button) findViewById(R.id.btnRefresh);
         btnRefresh.setOnClickListener(v -> refresh());
@@ -105,9 +115,33 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(serviceReceiver, new IntentFilter(BackendService.UPDATE_SMS_STATUS_ACTION));
     }
 
+    private void loginOnClickHandler() {
+        if (credentialsManager.hasValidCredentials()) {
+            logout();
+        } else {
+            loginWithBrowser();
+        }
+    }
+
+    private void logout() {
+        WebAuthProvider.logout(account)
+                .withScheme("demo")
+                .start(this, new Callback<Void, AuthenticationException>() {
+                    @Override
+                    public void onFailure(AuthenticationException exception) {
+                        // Something went wrong!
+                        throw exception;
+                    }
+
+                    @Override
+                    public void onSuccess(Void exception) {
+                        btnLogin.setText(R.string.login);
+                    }
+                });
+    }
+
     private void loginWithBrowser() {
         // Setup the WebAuthProvider, using the custom scheme and scope.
-
         WebAuthProvider.login(account)
                 .withScheme("demo")
                 .withScope("read:current_user update:current_user_metadata")
@@ -127,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
                         // Get the access token from the credentials object.
                         // This can be used to call APIs
                         accessToken = credentials.getAccessToken();
+                        btnLogin.setText(R.string.logout);
                         refresh();
                     }
                 });

@@ -1,7 +1,5 @@
 package me.simplq;
 
-import android.app.PendingIntent;
-import android.content.Intent;
 import android.telephony.SmsManager;
 
 import com.google.android.gms.tasks.Tasks;
@@ -45,7 +43,6 @@ public class MessagingService extends FirebaseMessagingService {
 
     private void sendSMS(String phoneNumber, String message) {
         // TODO log/notify on failure
-        smsManager.sendTextMessage(phoneNumber, null, message, PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0), null);
+        smsManager.sendTextMessage(phoneNumber, null, message, null, null);
     }
 }
