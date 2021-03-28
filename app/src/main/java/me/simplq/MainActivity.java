@@ -34,8 +34,7 @@ import me.simplq.pojo.Queue;
 public class MainActivity extends AppCompatActivity {
     // Set to null if user not signed in.
     private Auth0 account;
-    private CredentialsManager credentialsManager;
-    private static String accessToken;
+    public static CredentialsManager credentialsManager;
     Button btnLogin;
 
     Button btnRefresh;
@@ -68,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> loginOnClickHandler());
         if (credentialsManager.hasValidCredentials()) {
             btnLogin.setText(R.string.logout);
+            refresh();
         } else {
             btnLogin.setText(R.string.login);
         }
@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void exception) {
                         btnLogin.setText(R.string.login);
+                        credentialsManager.clearCredentials();
                     }
                 });
     }
@@ -158,18 +159,13 @@ public class MainActivity extends AppCompatActivity {
                     // Called when authentication completed successfully
                     @Override
                     public void onSuccess(Credentials credentials) {
-                        // Get the access token from the credentials object.
-                        // This can be used to call APIs
-                        accessToken = credentials.getAccessToken();
                         btnLogin.setText(R.string.logout);
+                        credentialsManager.saveCredentials(credentials);
                         refresh();
                     }
                 });
     }
 
-    public static String getIdToken() {
-        return accessToken;
-    }
 
     private void requestSmsPermission() {
         // Permission has not been granted and must be requested.

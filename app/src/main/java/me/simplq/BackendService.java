@@ -14,6 +14,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.auth0.android.authentication.storage.CredentialsManagerException;
+import com.auth0.android.callback.Callback;
+import com.auth0.android.result.Credentials;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,40 +62,49 @@ public class BackendService extends JobIntentService {
     }
 
     public void fetchQueues() {
-
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, BASE_URL + "/queues", null, new Response.Listener<JSONObject>() {
+        MainActivity.credentialsManager.getCredentials(new Callback<Credentials, CredentialsManagerException>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onSuccess(Credentials credentials) {
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, BASE_URL + "/queues", null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
 
-                Log.wtf("The Response ", response.toString());
-                ArrayList<Queue> queues = new ArrayList<Queue>();
-                try {
-                    JSONArray jsonQueues = response.getJSONArray("queues");
-                    for (int i = 0; i < jsonQueues.length(); i++) {
-                        JSONObject queue = jsonQueues.getJSONObject(i);
-                        queues.add(new Queue(queue.getString("queueName"), queue.getString("queueId")));
+                        Log.wtf("The Response ", response.toString());
+                        ArrayList<Queue> queues = new ArrayList<Queue>();
+                        try {
+                            JSONArray jsonQueues = response.getJSONArray("queues");
+                            for (int i = 0; i < jsonQueues.length(); i++) {
+                                JSONObject queue = jsonQueues.getJSONObject(i);
+                                queues.add(new Queue(queue.getString("queueName"), queue.getString("queueId")));
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, e.getMessage());
+                            queues.add(new Queue("json-parse-error", "json-parse-error"));
+                        }
+                        broadcastUpdateQueues(queues);
                     }
-                } catch (JSONException e) {
-                    Log.e(TAG, e.getMessage());
-                    queues.add(new Queue("json-parse-error", "json-parse-error"));
-                }
-                broadcastUpdateQueues(queues);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                throw new RuntimeException(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer " + MainActivity.getIdToken());
-                return params;
-            }
-        };
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        throw new RuntimeException(error);
+                    }
+                }) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("Authorization", "Bearer " + credentials.getAccessToken());
+                        return params;
+                    }
+                };
 
-        requestQueue.add(request);
+                requestQueue.add(request);
+            }
+
+            @Override
+            public void onFailure(CredentialsManagerException e) {
+
+            }
+        });
     }
 
     private void disableSms() {
@@ -104,54 +116,75 @@ public class BackendService extends JobIntentService {
     }
 
     private void updateSmsStatus() {
-        StringRequest
-                stringRequest = new StringRequest(Request.Method.GET, Uri.parse(BASE_URL + "/me/status").buildUpon().appendQueryParameter("deviceId", MessagingService.fetchToken()).build().toString(),
-                new Response.Listener<String>() {
+        MainActivity.credentialsManager.getCredentials(new Callback<Credentials, CredentialsManagerException>() {
+            @Override
+            public void onSuccess(Credentials credentials) {
+                StringRequest
+                        stringRequest = new StringRequest(Request.Method.GET, Uri.parse(BASE_URL + "/me/status").buildUpon().appendQueryParameter("deviceId", MessagingService.fetchToken()).build().toString(),
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                broadcastUpdateSmsStatus(Boolean.valueOf(response));
+                            }
+                        }, new Response.ErrorListener() {
                     @Override
-                    public void onResponse(String response) {
-                        broadcastUpdateSmsStatus(Boolean.valueOf(response));
+                    public void onErrorResponse(VolleyError error) {
+                        throw new RuntimeException(error);
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                throw new RuntimeException(error);
+                }) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("Authorization", "Bearer " + credentials.getAccessToken());
+                        return params;
+                    }
+                };
+                requestQueue.add(stringRequest);
             }
-        }) {
+
             @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer " + MainActivity.getIdToken());
-                return params;
+            public void onFailure(CredentialsManagerException e) {
+
             }
-        };
-        requestQueue.add(stringRequest);
+        });
+
     }
 
     private void updateDeviceRegistration(String newToken) {
-        StringRequest
-                stringRequest = new StringRequest(Request.Method.PUT, Uri.parse(BASE_URL + "/me/link").buildUpon().appendQueryParameter("deviceId", newToken).build().toString(),
-                new Response.Listener<String>() {
+        MainActivity.credentialsManager.getCredentials(new Callback<Credentials, CredentialsManagerException>() {
+            @Override
+            public void onSuccess(Credentials credentials) {
+                StringRequest
+                        stringRequest = new StringRequest(Request.Method.PUT, Uri.parse(BASE_URL + "/me/link").buildUpon().appendQueryParameter("deviceId", newToken).build().toString(),
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                broadcastUpdateSmsStatus(!newToken.equals("NULL"));
+                                return;
+                            }
+                        }, new Response.ErrorListener() {
                     @Override
-                    public void onResponse(String response) {
-                        broadcastUpdateSmsStatus(!newToken.equals("NULL"));
-                        return;
+                    public void onErrorResponse(VolleyError error) {
+                        throw new RuntimeException(error);
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                throw new RuntimeException(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer " + MainActivity.getIdToken());
-                return params;
-            }
-        };
+                }) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("Authorization", "Bearer " + credentials.getAccessToken());
+                        return params;
+                    }
+                };
 
-        // Add the request to the RequestQueue.
-        requestQueue.add(stringRequest);
+                // Add the request to the RequestQueue.
+                requestQueue.add(stringRequest);
+            }
+
+            @Override
+            public void onFailure(CredentialsManagerException e) {
+
+            }
+        });
     }
 
     /**
