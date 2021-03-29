@@ -99,7 +99,7 @@ public class MessagingService extends FirebaseMessagingService {
                     Toast.makeText(context, "SMS Sent", Toast.LENGTH_SHORT).show();
                     break;
                 case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                    Toast.makeText(context, "SMS generic failure", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "SMS generic failure, " + arg1.getIntExtra("errorCode", -1), Toast.LENGTH_SHORT).show();
                     break;
                 case SmsManager.RESULT_ERROR_NO_SERVICE:
                     Toast.makeText(context, "SMS no service", Toast.LENGTH_SHORT)
